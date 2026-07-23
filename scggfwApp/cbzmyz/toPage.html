@@ -186,18 +186,21 @@
         encodeURIComponent(codeFromQuery || EXPECTED) + "&type=" + encodeURIComponent(typeFromQuery || "toHtml");
       document.getElementById("pathText").textContent = pathText;
 
-      // 尽量把当前路径润色成 .../toPage.do?...（同域可改 path，不能改主机名）
+            // 路径润色成官方形态，并隐藏地址栏中的长查询参数（验证码已读入输入框/会话）
       try {
+        if (codeFromQuery) {
+          try { sessionStorage.setItem("cbzm_code", codeFromQuery); } catch (e0) {}
+        } else {
+          try { codeFromQuery = sessionStorage.getItem("cbzm_code") || ""; } catch (e1) {}
+        }
         var pretty = location.pathname.replace(/toPage\.html$/i, "toPage.do");
         if (!/toPage\.do$/i.test(pretty)) {
-          // 若从 404/首页进入，规范到官方路径形态
-          var base = "";
+          var base = location.pathname.indexOf("/cbzm-verify") === 0 ? "/cbzm-verify" : "";
           pretty = base + "/scggfwApp/cbzmyz/toPage.do";
         }
-        var q = "?code=" + encodeURIComponent(codeFromQuery || EXPECTED) +
-          "&type=" + encodeURIComponent(typeFromQuery || "toHtml");
-        if (location.pathname + location.search !== pretty + q) {
-          history.replaceState(null, "", pretty + q);
+        // 地址栏只保留干净路径，不再显示 ?code=...&type=...
+        if (location.pathname + location.search !== pretty) {
+          history.replaceState(null, "", pretty);
         }
       } catch (e) {}
 
