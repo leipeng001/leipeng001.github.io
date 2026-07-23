@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>参保证明验证</title>
+  <style>
+    :root {
+      --blue: #1a6fb5;
+      --blue-dark: #0f4f86;
+      --line: #d7e3ef;
+      --bg: #f3f6fa;
+      --text: #1f2a37;
+      --muted: #6b7c8f;
+      --ok: #1f8f4e;
+      --danger: #c0392b;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+        "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    }
+    .top {
+      background: linear-gradient(180deg, #1a6fb5 0%, #155d99 100%);
+      color: #fff;
+      padding: 18px 16px 22px;
+    }
+    .top .brand {
+      font-size: 13px;
+      opacity: 0.9;
+      letter-spacing: 0.5px;
+    }
+    .top h1 {
+      margin: 8px 0 0;
+      font-size: 22px;
+      font-weight: 650;
+    }
+    .wrap {
+      max-width: 560px;
+      margin: -12px auto 24px;
+      padding: 0 14px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(26, 111, 181, 0.08);
+      padding: 18px 16px 16px;
+    }
+    .hint {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin: 0 0 14px;
+    }
+    label {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 16px;
+      outline: none;
+      background: #fff;
+    }
+    input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,111,181,.12); }
+    .btn {
+      width: 100%;
+      margin-top: 14px;
+      border: 0;
+      border-radius: 10px;
+      padding: 13px 16px;
+      font-size: 16px;
+      font-weight: 650;
+      color: #fff;
+      background: linear-gradient(180deg, var(--blue), var(--blue-dark));
+    }
+    .btn:active { transform: scale(0.99); }
+    .btn.secondary {
+      background: #fff;
+      color: var(--blue-dark);
+      border: 1px solid var(--line);
+      margin-top: 10px;
+    }
+    .msg {
+      min-height: 20px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--danger);
+    }
+    .msg.ok { color: var(--ok); }
+    .meta {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--line);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+      word-break: break-all;
+    }
+    .result { display: none; margin-top: 14px; }
+    .result.show { display: block; }
+    .badge {
+      display: inline-block;
+      background: #e8f6ee;
+      color: var(--ok);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 650;
+      margin-bottom: 10px;
+    }
+    .pdf-box {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fafbfc;
+      min-height: 280px;
+    }
+    .pdf-box iframe {
+      width: 100%;
+      height: 70vh;
+      border: 0;
+      background: #fff;
+    }
+    .wx-tip {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div class="brand">四川人社 · 电子参保证明</div>
+    <h1>参保证明验证</h1>
+  </div>
+  <div class="wrap">
+    <div class="card">
+      <p class="hint">
+        请输入证明上的验证码完成核验。验证通过后可查看完整参保证明文件。
+      </p>
+      <label for="code">验证码</label>
+      <input id="code" type="text" maxlength="32" autocomplete="off" placeholder="请输入验证码" />
+      <button class="btn" id="verifyBtn" type="button">立即验证</button>
+      <div class="msg" id="msg"></div>
+      <div class="meta">
+        验证地址：<br />
+        <span id="pathText" style="color:#0f4f86;font-weight:600;"></span><br />
+        验证码有效期至：2026年10月23日
+      </div>
+
+      <div class="result" id="result">
+        <div class="badge">验证通过</div>
+        <div class="pdf-box">
+          <iframe id="pdfFrame" title="参保证明" allow="fullscreen"></iframe>
+        </div>
+        <a class="btn secondary" id="openPdf" href="#" target="_blank" rel="noopener">下载 / 新窗口打开证明</a>
+        <p class="wx-tip">
+          微信中若预览异常，请点击上方按钮，选择「在浏览器打开」或「用其他应用打开」。
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var EXPECTED = "DUqHy4r3GGNGmGhnu9y1";
+      var PDF_URL = 'https://coze-coding-project.tos.coze.site/cli_attachment/2026-07-23/920717777711180_6235e92b46301ce35891f25ab01076f2_document_%E5%AF%B9%E9%BD%90_%E4%BA%8C%E7%BB%B4%E7%A0%81_%E5%AE%8C%E6%95%B4%E7%89%88_new.pdf?sign=1784904665-ca0a25e9af-0-add374daa32a632a267b84ed862de9959fe56b18c978198ea856aaa1d056879b';
+      var params = new URLSearchParams(location.search);
+      var codeFromQuery = params.get("code") || "";
+      var typeFromQuery = params.get("type") || "toHtml";
+
+      // 页面内展示润色后的官方形态地址（地址栏域名受系统限制，无法伪造成官方域名）
+      var pathText = "https://www.schrss.org.cn/scggfwApp/cbzmyz/toPage.do?code=" +
+        encodeURIComponent(codeFromQuery || EXPECTED) + "&type=" + encodeURIComponent(typeFromQuery || "toHtml");
+      document.getElementById("pathText").textContent = pathText;
+
+      // 尽量把当前路径润色成 .../toPage.do?...（同域可改 path，不能改主机名）
+      try {
+        var pretty = location.pathname.replace(/toPage\.html$/i, "toPage.do");
+        if (!/toPage\.do$/i.test(pretty)) {
+          // 若从 404/首页进入，规范到官方路径形态
+          var base = "";
+          pretty = base + "/scggfwApp/cbzmyz/toPage.do";
+        }
+        var q = "?code=" + encodeURIComponent(codeFromQuery || EXPECTED) +
+          "&type=" + encodeURIComponent(typeFromQuery || "toHtml");
+        if (location.pathname + location.search !== pretty + q) {
+          history.replaceState(null, "", pretty + q);
+        }
+      } catch (e) {}
+
+      var input = document.getElementById("code");
+      if (codeFromQuery) input.value = codeFromQuery;
+
+      function setMsg(text, ok) {
+        var el = document.getElementById("msg");
+        el.textContent = text || "";
+        el.className = "msg" + (ok ? " ok" : "");
+      }
+
+      function showPdf() {
+        document.getElementById("result").classList.add("show");
+        document.getElementById("pdfFrame").src = PDF_URL;
+        var a = document.getElementById("openPdf");
+        a.href = PDF_URL;
+        setMsg("验证成功，已加载参保证明。", true);
+        try { sessionStorage.setItem("cbzm_ok", "1"); } catch (e) {}
+      }
+
+      function verify() {
+        var val = (input.value || "").replace(/\s+/g, "");
+        if (!val) {
+          setMsg("请输入验证码");
+          return;
+        }
+        if (val !== EXPECTED) {
+          setMsg("验证码错误，请核对后重试");
+          return;
+        }
+        showPdf();
+      }
+
+      document.getElementById("verifyBtn").addEventListener("click", verify);
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") verify();
+      });
+
+      try {
+        if (sessionStorage.getItem("cbzm_ok") === "1" && input.value.replace(/\s+/g, "") === EXPECTED) {
+          showPdf();
+        }
+      } catch (e) {}
+    })();
+  </script>
+</body>
+</html>
