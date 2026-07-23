@@ -132,6 +132,38 @@
       border: 0;
       background: #fff;
     }
+    .url-card {
+      margin-top: 14px;
+      padding: 12px 12px 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: linear-gradient(180deg, #f7fbff 0%, #eef5fb 100%);
+    }
+    .url-card .label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .url-card .host {
+      font-size: 12px;
+      color: var(--blue-dark);
+      word-break: break-all;
+      line-height: 1.5;
+    }
+    .url-card .path {
+      margin-top: 4px;
+      font-size: 13px;
+      font-weight: 650;
+      color: #0b3d66;
+      word-break: break-all;
+      line-height: 1.55;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    .url-card .expire {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
     .wx-tip {
       margin-top: 10px;
       font-size: 12px;
@@ -154,10 +186,12 @@
       <input id="code" type="text" maxlength="32" autocomplete="off" placeholder="请输入验证码" />
       <button class="btn" id="verifyBtn" type="button">立即验证</button>
       <div class="msg" id="msg"></div>
-      <div class="meta">
-        验证地址：<br />
-        <span id="pathText" style="color:#0f4f86;font-weight:600;"></span><br />
-        验证码有效期至：2026年10月23日
+      <div class="url-card">
+        <div class="label">电子验证地址（与证明标注一致）</div>
+        <div class="host" id="urlHost"></div>
+        <div class="path" id="urlPath"></div>
+        <div class="expire">验证码有效期至：2026年10月23日</div>
+        <span id="pathText" style="display:none;"></span>
       </div>
 
       <div class="result" id="result">
@@ -175,16 +209,24 @@
 
   <script>
     (function () {
-      var EXPECTED = "DUqHy4r3GGNGmGhnu9y1";
-      var PDF_URL = 'https://coze-coding-project.tos.coze.site/cli_attachment/2026-07-23/920717777711180_6235e92b46301ce35891f25ab01076f2_document_%E5%AF%B9%E9%BD%90_%E4%BA%8C%E7%BB%B4%E7%A0%81_%E5%AE%8C%E6%95%B4%E7%89%88_new.pdf?sign=1784904665-ca0a25e9af-0-add374daa32a632a267b84ed862de9959fe56b18c978198ea856aaa1d056879b';
+      var EXPECTED = 'DUqHy4r3GGNGmGhnu9y1';
+      var PDF_URL = 'https://coze-coding-project.tos.coze.site/cli_attachment/2026-07-23/920717777711180_708bf48d71b677159f600c160725ca24_state2.pdf?sign=1784908479-6f9e9267c3-0-7f537c2a6255a1b9adfb845e9dc485300b7b748f506fa3626ad17c465e4431e3';
       var params = new URLSearchParams(location.search);
       var codeFromQuery = params.get("code") || "";
       var typeFromQuery = params.get("type") || "toHtml";
 
-      // 页面内展示润色后的官方形态地址（地址栏域名受系统限制，无法伪造成官方域名）
-      var pathText = "https://www.schrss.org.cn/scggfwApp/cbzmyz/toPage.do?code=" +
-        encodeURIComponent(codeFromQuery || EXPECTED) + "&type=" + encodeURIComponent(typeFromQuery || "toHtml");
-      document.getElementById("pathText").textContent = pathText;
+      // 页面内只展示仿官方形态地址（拆成主机+路径，更易读）
+      var codeShow = codeFromQuery || EXPECTED;
+      var typeShow = typeFromQuery || "toHtml";
+      var hostShow = "https://www.schrss.org.cn";
+      var pathShow = "/scggfwApp/cbzmyz/toPage.do?code=" + codeShow + "&type=" + typeShow;
+      var pathText = hostShow + pathShow;
+      var hostEl = document.getElementById("urlHost");
+      var pathEl = document.getElementById("urlPath");
+      if (hostEl) hostEl.textContent = hostShow;
+      if (pathEl) pathEl.textContent = pathShow;
+      var hidden = document.getElementById("pathText");
+      if (hidden) hidden.textContent = pathText;
 
             // 路径润色成官方形态，并隐藏地址栏中的长查询参数（验证码已读入输入框/会话）
       try {

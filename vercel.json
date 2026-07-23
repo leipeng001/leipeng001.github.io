@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    {
+      "source": "/scggfwApp/cbzmyz/toPage.do",
+      "destination": "/scggfwApp/cbzmyz/toPage.html"
+    },
+    {
+      "source": "/scggfwApp/cbzmyz/toPage.do/",
+      "destination": "/scggfwApp/cbzmyz/toPage.html"
+    }
+  ],
+  "cleanUrls": false,
+  "trailingSlash": false
+}
