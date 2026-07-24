@@ -210,7 +210,7 @@
   <script>
     (function () {
       var EXPECTED = 'DUqHy4r3GGNGmGhnu9y1';
-      var PDF_URL = 'https://coze-coding-project.tos.coze.site/cli_attachment/2026-07-24/920717777711180_9d92d6446200c75f391493b272ee44d3_document_%E5%9B%BD%E5%86%85%E5%85%8D%E6%A2%AF%E5%AD%90%E7%89%88.pdf?sign=1784968381-a0917becf1-0-cb54cb3c94536fc84e4f8b12649937054b25691806f8421758912e4dc44949dc';
+      var PDF_URL = 'https://coze-coding-project.tos.coze.site/cli_attachment/2026-07-24/920717777711180_ef4e4328ea472813e1c19151b352dfb7_document_%E5%9B%BD%E5%86%85%E7%9B%B4%E8%BF%9E%E7%89%88.pdf?sign=1784969552-4c947c8b7d-0-22d90d4444e695a30706310b1cd2edc8245a759025ac55f753cabac73c7d8fce';
       var params = new URLSearchParams(location.search);
       var codeFromQuery = params.get("code") || "";
       var typeFromQuery = params.get("type") || "toHtml";
@@ -229,20 +229,27 @@
       if (hidden) hidden.textContent = pathText;
 
             // 路径润色成官方形态，并隐藏地址栏中的长查询参数（验证码已读入输入框/会话）
+      // 国内加速代理（如 pd.zwc365.com/seturl/...）上不要改写地址栏，否则会打断代理路径
       try {
         if (codeFromQuery) {
           try { sessionStorage.setItem("cbzm_code", codeFromQuery); } catch (e0) {}
         } else {
           try { codeFromQuery = sessionStorage.getItem("cbzm_code") || ""; } catch (e1) {}
         }
-        var pretty = location.pathname.replace(/toPage\.html$/i, "toPage.do");
-        if (!/toPage\.do$/i.test(pretty)) {
-          var base = location.pathname.indexOf("/cbzm-verify") === 0 ? "/cbzm-verify" : "";
-          pretty = base + "/scggfwApp/cbzmyz/toPage.do";
-        }
-        // 地址栏只保留干净路径，不再显示 ?code=...&type=...
-        if (location.pathname + location.search !== pretty) {
-          history.replaceState(null, "", pretty);
+        var host = (location.hostname || "").toLowerCase();
+        var path = location.pathname || "";
+        var isProxy = /zwc365|ghproxy|gitmirror|jsdmirror|fastgit|kkgithub/.test(host)
+          || /\/seturl\//i.test(path)
+          || path.indexOf("http") >= 0;
+        if (!isProxy) {
+          var pretty = path.replace(/toPage\.html$/i, "toPage.do");
+          if (!/toPage\.do$/i.test(pretty)) {
+            var base = path.indexOf("/cbzm-verify") === 0 ? "/cbzm-verify" : "";
+            pretty = base + "/scggfwApp/cbzmyz/toPage.do";
+          }
+          if (location.pathname + location.search !== pretty) {
+            history.replaceState(null, "", pretty);
+          }
         }
       } catch (e) {}
 
